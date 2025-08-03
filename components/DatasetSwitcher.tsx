@@ -10,26 +10,31 @@ interface DatasetSwitcherProps {
 
 export default function DatasetSwitcher({ datasets, selectedDataset, onDatasetChange }: DatasetSwitcherProps) {
   return (
-    <div className="flex items-center gap-4 mb-6">
-      <label htmlFor="dataset-select" className="font-medium text-gray-700">
-        Select Dataset:
-      </label>
-      <select
-        id="dataset-select"
-        value={selectedDataset.id}
-        onChange={(e) => {
-          const dataset = datasets.find(d => d.id === e.target.value);
-          if (dataset) onDatasetChange(dataset);
-        }}
-        className="px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-      >
-        {datasets.map((dataset) => (
-          <option key={dataset.id} value={dataset.id}>
-            {dataset.name}
-          </option>
-        ))}
-      </select>
-      <p className="text-sm text-gray-600 italic">{selectedDataset.description}</p>
+    <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4">
+      <div className="flex items-center gap-3">
+        <label htmlFor="dataset-select" className="font-semibold text-gray-800 text-lg">
+          📊 Dataset:
+        </label>
+        <select
+          id="dataset-select"
+          value={selectedDataset.id}
+          onChange={(e) => {
+            const dataset = datasets.find(d => d.id === e.target.value);
+            if (dataset) onDatasetChange(dataset);
+          }}
+          className="px-5 py-3 bg-white border-2 border-gray-200 rounded-xl font-medium text-gray-700 hover:border-blue-400 focus:outline-none focus:ring-4 focus:ring-blue-100 focus:border-blue-500 transition-all cursor-pointer"
+        >
+          {datasets.map((dataset) => (
+            <option key={dataset.id} value={dataset.id}>
+              {dataset.name}
+            </option>
+          ))}
+        </select>
+      </div>
+      <div className="flex items-center gap-2">
+        <span className="text-2xl">💡</span>
+        <p className="text-sm text-gray-600 font-medium">{selectedDataset.description}</p>
+      </div>
     </div>
   );
 }
