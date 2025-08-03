@@ -35,9 +35,9 @@ export default function LabelPanel({ labels, selectedSegment, onAddLabel, onDele
   };
   
   return (
-    <div className="bg-white/90 backdrop-blur-sm rounded-2xl shadow-xl p-6 space-y-6">
+    <div className="bg-white/90 backdrop-blur-sm rounded-2xl shadow-xl p-4 sm:p-6 space-y-4 sm:space-y-6">
       <div>
-        <h3 className="text-xl font-bold text-gray-800 mb-4 flex items-center gap-2">
+        <h3 className="text-lg sm:text-xl font-bold text-gray-800 mb-3 sm:mb-4 flex items-center gap-2">
           <span className="text-2xl">🏷️</span>
           Label Manager
         </h3>
@@ -51,12 +51,12 @@ export default function LabelPanel({ labels, selectedSegment, onAddLabel, onDele
             <div className="space-y-3">
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">Category</label>
-                <div className="grid grid-cols-2 gap-2">
+                <div className="grid grid-cols-2 gap-1 sm:gap-2">
                   {labelCategories.map(category => (
                     <button
                       key={category.id}
                       onClick={() => setSelectedCategory(category)}
-                      className={`p-2 rounded-lg border-2 transition-all text-sm font-medium ${
+                      className={`p-2 sm:p-3 rounded-lg border-2 transition-all text-xs sm:text-sm font-medium ${
                         selectedCategory.id === category.id
                           ? 'border-blue-500 bg-blue-50'
                           : 'border-gray-200 hover:border-gray-300'
@@ -82,14 +82,14 @@ export default function LabelPanel({ labels, selectedSegment, onAddLabel, onDele
                   type="text"
                   value={description}
                   onChange={(e) => setDescription(e.target.value)}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm sm:text-base"
                   placeholder="Add a description..."
                 />
               </div>
               
               <button
                 onClick={handleAddLabel}
-                className="w-full bg-gradient-to-r from-blue-500 to-indigo-500 text-white py-2 px-4 rounded-lg font-medium hover:from-blue-600 hover:to-indigo-600 transition-all"
+                className="w-full bg-gradient-to-r from-blue-500 to-indigo-500 text-white py-2 px-4 rounded-lg font-medium hover:from-blue-600 hover:to-indigo-600 transition-all text-sm sm:text-base"
               >
                 Add Label
               </button>
@@ -105,15 +105,15 @@ export default function LabelPanel({ labels, selectedSegment, onAddLabel, onDele
       </div>
       
       <div>
-        <h4 className="font-semibold text-gray-800 mb-3">Existing Labels</h4>
-        <div className="space-y-2 max-h-64 overflow-y-auto">
+        <h4 className="font-semibold text-gray-800 mb-2 sm:mb-3 text-sm sm:text-base">Existing Labels</h4>
+        <div className="space-y-2 max-h-48 sm:max-h-64 overflow-y-auto">
           {labels.length === 0 && (
             <p className="text-gray-400 text-sm">No labels yet</p>
           )}
           {labels.map(label => (
             <div
               key={label.id}
-              className="bg-gray-50 rounded-lg p-3 flex items-center justify-between hover:bg-gray-100 transition-colors"
+              className="bg-gray-50 rounded-lg p-2 sm:p-3 flex items-center justify-between hover:bg-gray-100 transition-colors"
             >
               <div className="flex items-center gap-3">
                 <div

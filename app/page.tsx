@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import SignalSelector from '@/components/SignalSelector';
-import SignalVisualizer from '@/components/SignalVisualizer';
+import SignalVisualizerD3 from '@/components/SignalVisualizerD3';
 import LabelPanel from '@/components/LabelPanel';
 import { signals, Label } from '@/lib/signal-data';
 
@@ -52,12 +52,12 @@ export default function Home() {
   
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-100">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <header className="mb-8 text-center">
-          <h1 className="text-4xl font-bold bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent mb-2">
+      <div className="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8 py-4 sm:py-8">
+        <header className="mb-4 sm:mb-8 text-center">
+          <h1 className="text-2xl sm:text-4xl font-bold bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent mb-2">
             Signal Labeling Tool
           </h1>
-          <p className="text-gray-600">Click and drag on the signal to select segments for labeling</p>
+          <p className="text-sm sm:text-base text-gray-600 px-4">Click and drag on the signal to select segments for labeling</p>
         </header>
         
         <div className="space-y-6">
@@ -67,43 +67,43 @@ export default function Home() {
             onSignalChange={setSelectedSignal}
           />
           
-          <SignalVisualizer
+          <SignalVisualizerD3
             data={selectedSignal.data}
             labels={labels}
             onSegmentSelect={handleSegmentSelect}
-            height={400}
+            height={typeof window !== 'undefined' && window.innerWidth < 640 ? 250 : 400}
           />
           
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 sm:gap-6">
             <div className="lg:col-span-2">
-              <div className="bg-white/90 backdrop-blur-sm rounded-2xl shadow-xl p-6">
-                <h3 className="text-xl font-bold text-gray-800 mb-4 flex items-center gap-2">
+              <div className="bg-white/90 backdrop-blur-sm rounded-2xl shadow-xl p-4 sm:p-6">
+                <h3 className="text-lg sm:text-xl font-bold text-gray-800 mb-3 sm:mb-4 flex items-center gap-2">
                   <span className="text-2xl">📈</span>
                   Signal Statistics
                 </h3>
-                <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                  <div className="bg-gray-50 rounded-lg p-3">
-                    <p className="text-sm text-gray-500">Total Labels</p>
-                    <p className="text-2xl font-bold text-gray-800">{labels.length}</p>
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-2 sm:gap-4">
+                  <div className="bg-gray-50 rounded-lg p-2 sm:p-3">
+                    <p className="text-xs sm:text-sm text-gray-500">Total Labels</p>
+                    <p className="text-xl sm:text-2xl font-bold text-gray-800">{labels.length}</p>
                   </div>
-                  <div className="bg-gray-50 rounded-lg p-3">
-                    <p className="text-sm text-gray-500">Duration</p>
-                    <p className="text-2xl font-bold text-gray-800">{selectedSignal.duration}s</p>
+                  <div className="bg-gray-50 rounded-lg p-2 sm:p-3">
+                    <p className="text-xs sm:text-sm text-gray-500">Duration</p>
+                    <p className="text-xl sm:text-2xl font-bold text-gray-800">{selectedSignal.duration}s</p>
                   </div>
-                  <div className="bg-gray-50 rounded-lg p-3">
-                    <p className="text-sm text-gray-500">Sample Rate</p>
-                    <p className="text-2xl font-bold text-gray-800">{selectedSignal.sampleRate}Hz</p>
+                  <div className="bg-gray-50 rounded-lg p-2 sm:p-3">
+                    <p className="text-xs sm:text-sm text-gray-500">Sample Rate</p>
+                    <p className="text-xl sm:text-2xl font-bold text-gray-800">{selectedSignal.sampleRate}Hz</p>
                   </div>
-                  <div className="bg-gray-50 rounded-lg p-3">
-                    <p className="text-sm text-gray-500">Samples</p>
-                    <p className="text-2xl font-bold text-gray-800">{selectedSignal.data.length}</p>
+                  <div className="bg-gray-50 rounded-lg p-2 sm:p-3">
+                    <p className="text-xs sm:text-sm text-gray-500">Samples</p>
+                    <p className="text-xl sm:text-2xl font-bold text-gray-800">{selectedSignal.data.length}</p>
                   </div>
                 </div>
                 
                 <button
                   onClick={handleExport}
                   disabled={labels.length === 0}
-                  className={`mt-4 w-full py-2 px-4 rounded-lg font-medium transition-all ${
+                  className={`mt-4 w-full py-2 px-4 rounded-lg font-medium transition-all text-sm sm:text-base ${
                     labels.length > 0
                       ? 'bg-gradient-to-r from-green-500 to-emerald-500 text-white hover:from-green-600 hover:to-emerald-600'
                       : 'bg-gray-200 text-gray-400 cursor-not-allowed'
