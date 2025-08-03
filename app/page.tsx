@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import SignalSelector from '@/components/SignalSelector';
-import SignalVisualizerD3 from '@/components/SignalVisualizerD3';
+import SignalVisualizerMobile from '@/components/SignalVisualizerMobile';
 import LabelPanel from '@/components/LabelPanel';
 import { signals, Label } from '@/lib/signal-data';
 
@@ -67,7 +67,7 @@ export default function Home() {
             onSignalChange={setSelectedSignal}
           />
           
-          <SignalVisualizerD3
+          <SignalVisualizerMobile
             data={selectedSignal.data}
             labels={labels}
             onSegmentSelect={handleSegmentSelect}
