@@ -1,39 +1,88 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import SignalSelector from '@/components/SignalSelector';
-import SignalVisualizerMobile from '@/components/SignalVisualizerMobile';
-import LabelPanel from '@/components/LabelPanel';
-import { signals, Label } from '@/lib/signal-data';
+import SimpleSignalViewer from '@/components/SimpleSignalViewer';
+import PlaybackControls from '@/components/PlaybackControls';
+import SimpleLabelButtons from '@/components/SimpleLabelButtons';
+import { signals, Label, LabelCategory } from '@/lib/signal-data';
 
 export default function Home() {
   const [selectedSignal, setSelectedSignal] = useState(signals[0]);
   const [labels, setLabels] = useState<Label[]>([]);
-  const [selectedSegment, setSelectedSegment] = useState<{ startTime: number; endTime: number } | null>(null);
-  
-  const handleSegmentSelect = (startTime: number, endTime: number) => {
-    setSelectedSegment({ startTime, endTime });
-  };
-  
-  const handleAddLabel = (labelData: Omit<Label, 'id'>) => {
-    const newLabel: Label = {
-      ...labelData,
-      id: Date.now().toString(),
+  const [currentTime, setCurrentTime] = useState(0);
+  const [isPlaying, setIsPlaying] = useState(false);
+  const [playbackSpeed, setPlaybackSpeed] = useState(1);
+  const animationRef = useRef<number | undefined>(undefined);
+  const lastTimeRef = useRef<number | undefined>(undefined);
+
+  // Playback logic
+  useEffect(() => {
+    if (isPlaying) {
+      const animate = (timestamp: number) => {
+        if (!lastTimeRef.current) lastTimeRef.current = timestamp;
+        
+        const deltaTime = (timestamp - lastTimeRef.current) / 1000; // Convert to seconds
+        const newTime = currentTime + (deltaTime * playbackSpeed);
+        
+        if (newTime >= selectedSignal.duration) {
+          setCurrentTime(selectedSignal.duration);
+          setIsPlaying(false);
+        } else {
+          setCurrentTime(newTime);
+          lastTimeRef.current = timestamp;
+          animationRef.current = requestAnimationFrame(animate);
+        }
+      };
+      
+      animationRef.current = requestAnimationFrame(animate);
+    } else {
+      lastTimeRef.current = undefined;
+      if (animationRef.current) {
+        cancelAnimationFrame(animationRef.current);
+      }
+    }
+    
+    return () => {
+      if (animationRef.current) {
+        cancelAnimationFrame(animationRef.current);
+      }
     };
-    setLabels([...labels, newLabel]);
-    setSelectedSegment(null);
+  }, [isPlaying, currentTime, playbackSpeed, selectedSignal.duration]);
+
+  // Reset when signal changes
+  useEffect(() => {
+    setCurrentTime(0);
+    setIsPlaying(false);
+    setLabels([]);
+  }, [selectedSignal]);
+
+  const handleLabelClick = (category: LabelCategory) => {
+    // Find the end of the last label or use current time - 0.5s as start
+    const sortedLabels = [...labels].sort((a, b) => a.startTime - b.startTime);
+    const lastLabel = sortedLabels[sortedLabels.length - 1];
+    
+    const startTime = lastLabel ? lastLabel.endTime : Math.max(0, currentTime - 0.5);
+    const endTime = Math.min(currentTime + 0.5, selectedSignal.duration);
+    
+    if (endTime > startTime) {
+      const newLabel: Label = {
+        id: Date.now().toString(),
+        startTime,
+        endTime,
+        category: category.name,
+        color: category.color,
+        description: category.description
+      };
+      
+      setLabels([...labels, newLabel]);
+    }
   };
-  
+
   const handleDeleteLabel = (id: string) => {
     setLabels(labels.filter(label => label.id !== id));
   };
-  
-  const handleEditLabel = (id: string, updates: Partial<Label>) => {
-    setLabels(labels.map(label => 
-      label.id === id ? { ...label, ...updates } : label
-    ));
-  };
-  
+
   const handleExport = () => {
     const exportData = {
       signal: selectedSignal.name,
@@ -49,79 +98,94 @@ export default function Home() {
     a.click();
     URL.revokeObjectURL(url);
   };
-  
+
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-100">
-      <div className="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8 py-4 sm:py-8">
-        <header className="mb-4 sm:mb-8 text-center">
-          <h1 className="text-2xl sm:text-4xl font-bold bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent mb-2">
-            Signal Labeling Tool
-          </h1>
-          <p className="text-sm sm:text-base text-gray-600 px-4">Click and drag on the signal to select segments for labeling</p>
+    <div className="min-h-screen bg-gray-50">
+      <div className="max-w-4xl mx-auto px-3 py-4">
+        <header className="mb-4 text-center">
+          <h1 className="text-2xl font-bold text-gray-900">Signal Labeler</h1>
+          <p className="text-sm text-gray-600">Play signal and press buttons to label</p>
         </header>
         
-        <div className="space-y-6">
+        <div className="space-y-4">
           <SignalSelector
             signals={signals}
             selectedSignal={selectedSignal}
             onSignalChange={setSelectedSignal}
           />
           
-          <SignalVisualizerMobile
+          <SimpleSignalViewer
             data={selectedSignal.data}
             labels={labels}
-            onSegmentSelect={handleSegmentSelect}
-            height={typeof window !== 'undefined' && window.innerWidth < 640 ? 250 : 400}
+            currentTime={currentTime}
+            height={200}
           />
           
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 sm:gap-6">
-            <div className="lg:col-span-2">
-              <div className="bg-white/90 backdrop-blur-sm rounded-2xl shadow-xl p-4 sm:p-6">
-                <h3 className="text-lg sm:text-xl font-bold text-gray-800 mb-3 sm:mb-4 flex items-center gap-2">
-                  <span className="text-2xl">📈</span>
-                  Signal Statistics
-                </h3>
-                <div className="grid grid-cols-2 md:grid-cols-4 gap-2 sm:gap-4">
-                  <div className="bg-gray-50 rounded-lg p-2 sm:p-3">
-                    <p className="text-xs sm:text-sm text-gray-500">Total Labels</p>
-                    <p className="text-xl sm:text-2xl font-bold text-gray-800">{labels.length}</p>
-                  </div>
-                  <div className="bg-gray-50 rounded-lg p-2 sm:p-3">
-                    <p className="text-xs sm:text-sm text-gray-500">Duration</p>
-                    <p className="text-xl sm:text-2xl font-bold text-gray-800">{selectedSignal.duration}s</p>
-                  </div>
-                  <div className="bg-gray-50 rounded-lg p-2 sm:p-3">
-                    <p className="text-xs sm:text-sm text-gray-500">Sample Rate</p>
-                    <p className="text-xl sm:text-2xl font-bold text-gray-800">{selectedSignal.sampleRate}Hz</p>
-                  </div>
-                  <div className="bg-gray-50 rounded-lg p-2 sm:p-3">
-                    <p className="text-xs sm:text-sm text-gray-500">Samples</p>
-                    <p className="text-xl sm:text-2xl font-bold text-gray-800">{selectedSignal.data.length}</p>
-                  </div>
-                </div>
-                
-                <button
-                  onClick={handleExport}
-                  disabled={labels.length === 0}
-                  className={`mt-4 w-full py-2 px-4 rounded-lg font-medium transition-all text-sm sm:text-base ${
-                    labels.length > 0
-                      ? 'bg-gradient-to-r from-green-500 to-emerald-500 text-white hover:from-green-600 hover:to-emerald-600'
-                      : 'bg-gray-200 text-gray-400 cursor-not-allowed'
-                  }`}
-                >
-                  Export Labels ({labels.length})
-                </button>
-              </div>
+          <PlaybackControls
+            currentTime={currentTime}
+            duration={selectedSignal.duration}
+            isPlaying={isPlaying}
+            onPlayPause={() => setIsPlaying(!isPlaying)}
+            onSeek={setCurrentTime}
+            onSpeedChange={setPlaybackSpeed}
+            playbackSpeed={playbackSpeed}
+          />
+          
+          <SimpleLabelButtons
+            onLabelClick={handleLabelClick}
+            disabled={isPlaying}
+          />
+          
+          {/* Labels list */}
+          <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-4">
+            <div className="flex items-center justify-between mb-3">
+              <h3 className="text-lg font-semibold text-gray-800">
+                Labels ({labels.length})
+              </h3>
+              <button
+                onClick={handleExport}
+                disabled={labels.length === 0}
+                className={`px-4 py-2 rounded-lg text-sm font-medium transition-all ${
+                  labels.length > 0
+                    ? 'bg-green-500 text-white hover:bg-green-600'
+                    : 'bg-gray-200 text-gray-400 cursor-not-allowed'
+                }`}
+              >
+                Export JSON
+              </button>
             </div>
             
-            <div className="lg:col-span-1">
-              <LabelPanel
-                labels={labels}
-                selectedSegment={selectedSegment}
-                onAddLabel={handleAddLabel}
-                onDeleteLabel={handleDeleteLabel}
-                onEditLabel={handleEditLabel}
-              />
+            <div className="space-y-2 max-h-48 overflow-y-auto">
+              {labels.length === 0 && (
+                <p className="text-gray-400 text-sm text-center py-4">
+                  No labels yet. Play the signal and press label buttons.
+                </p>
+              )}
+              {labels.map(label => (
+                <div
+                  key={label.id}
+                  className="flex items-center justify-between p-2 bg-gray-50 rounded-lg"
+                >
+                  <div className="flex items-center gap-2">
+                    <div
+                      className="w-4 h-4 rounded"
+                      style={{ backgroundColor: label.color }}
+                    />
+                    <span className="font-medium text-sm">{label.category}</span>
+                    <span className="text-xs text-gray-500">
+                      {label.startTime.toFixed(2)}s - {label.endTime.toFixed(2)}s
+                    </span>
+                  </div>
+                  <button
+                    onClick={() => handleDeleteLabel(label.id)}
+                    className="text-red-500 hover:text-red-700 p-1"
+                  >
+                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                    </svg>
+                  </button>
+                </div>
+              ))}
             </div>
           </div>
         </div>
